@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full max-w-lg mx-auto bg-white p-8 rounded shadow">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ form_type }}</h2>
+    
+    <form method="POST">
+        {% if form_type == "Safety Incident" %}
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Description of Incident</label>
+                <textarea name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="4" required></textarea>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Severity Level</label>
+                <select name="severity" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                </select>
+            </div>
+        {% else %}
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Equipment/Area Item</label>
+                <input type="text" name="item" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Issue Description</label>
+                <textarea name="issue" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" rows="3" required></textarea>
+            </div>
+        {% endif %}
+
+        <div class="flex items-center justify-between">
+            <button class="bg-blue-900 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Submit Report
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

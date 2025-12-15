@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded shadow p-6 border-l-4 border-red-500">
+        <h3 class="text-gray-600 uppercase text-xs font-semibold">Open Safety Incidents</h3>
+        <h2 class="text-3xl font-bold text-gray-800">{{ safety_count }}</h2>
+    </div>
+    
+    <div class="bg-white rounded shadow p-6 border-l-4 border-yellow-500">
+        <h3 class="text-gray-600 uppercase text-xs font-semibold">Pending Maintenance</h3>
+        <h2 class="text-3xl font-bold text-gray-800">{{ maint_count }}</h2>
+    </div>
+    
+    <div class="bg-white rounded shadow p-6 border-l-4 border-green-500">
+        <h3 class="text-gray-600 uppercase text-xs font-semibold">Compliance Score</h3>
+        <h2 class="text-3xl font-bold text-gray-800">{{ score }}%</h2>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="bg-white rounded shadow p-6">
+        <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
+        <a href="/log_incident" class="block w-full bg-red-600 text-white text-center py-2 rounded mb-3 hover:bg-red-700">Report Safety Incident</a>
+        <a href="/request_maintenance" class="block w-full bg-yellow-500 text-white text-center py-2 rounded mb-3 hover:bg-yellow-600">Request Maintenance</a>
+        
+        {% if role in ['Admin', 'MD', 'GM'] %}
+            <a href="/generate_report" class="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700">Download Weekly Report (CSV)</a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded shadow p-6">
+        <h3 class="text-xl font-bold mb-4">Real-Time Audit Trail</h3>
+        <ul class="divide-y divide-gray-200">
+            {% for i in incidents %}
+            <li class="py-2">
+                <span class="text-xs font-semibold inline-block py-1 px-2 rounded text-red-600 bg-red-200 uppercase last:mr-0 mr-1">
+                    {{ i.severity }}
+                </span>
+                <span class="text-gray-700 text-sm">{{ i.description }}</span>
+                <p class="text-gray-500 text-xs">{{ i.date.strftime('%Y-%m-%d %H:%M') }} by {{ i.reported_by }}</p>
+            </li>
+            {% endfor %}
+            {% for m in maintenance %}
+            <li class="py-2">
+                <span class="text-xs font-semibold inline-block py-1 px-2 rounded text-yellow-600 bg-yellow-200 uppercase last:mr-0 mr-1">
+                    MAINT
+                </span>
+                <span class="text-gray-700 text-sm">{{ m.item }}: {{ m.issue }}</span>
+                <p class="text-gray-500 text-xs">{{ m.date.strftime('%Y-%m-%d %H:%M') }} by {{ m.requested_by }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
