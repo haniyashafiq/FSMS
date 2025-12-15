@@ -177,4 +177,4 @@ def fire_report():
     return render_template('fire_report.html', extinguishers=extinguishers, report_date=report_date)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True)
