@@ -7,34 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        /* Smooth Fade In */
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Glassmorphism Sidebar Link */
-        .nav-item.active { 
-            background: rgba(255, 255, 255, 0.15); 
-            border-left: 4px solid #F472B6; /* Pink accent */
-            color: white;
-            backdrop-filter: blur(10px);
-        }
+        .nav-item.active { background: rgba(255, 255, 255, 0.15); border-left: 4px solid #F472B6; color: white; backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 antialiased selection:bg-pink-500 selection:text-white">
-
+<body class="bg-gray-100 text-gray-800 antialiased">
     <div class="flex h-screen overflow-hidden">
         
         <aside class="w-72 bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-950 text-white hidden md:flex flex-col shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-64 h-64 bg-pink-500 rounded-full mix-blend-overlay filter blur-3xl opacity-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-
             <div class="h-24 flex items-center px-8 z-10">
                 <div class="relative">
-                    <img src="../static/logo.jpg" class="h-12 w-12 rounded-full border-2 border-white/50 shadow-lg object-cover" alt="Logo">
-                    <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-purple-900 bg-green-400"></span>
+                    <img src="../static/logo.jpg" class="h-12 w-12 rounded-full border-2 border-white/50 shadow-lg object-cover">
                 </div>
                 <div class="ml-4">
                     <span class="block text-xl font-bold tracking-tight">Maria FSMS</span>
@@ -42,34 +27,25 @@
                 </div>
             </div>
 
-            <nav class="flex-1 px-4 py-6 space-y-2 z-10">
+            <nav class="flex-1 px-4 py-6 space-y-2 z-10 overflow-y-auto">
                 {% if current_user.is_authenticated %}
                     <p class="px-4 text-xs font-bold text-indigo-300 uppercase tracking-wider mb-4">Operations</p>
                     
-                    <a href="/dashboard" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 group {% if request.endpoint == 'dashboard' %}active{% endif %}">
-                        <i class="ph ph-squares-four text-xl mr-3 group-hover:scale-110 transition-transform"></i>
-                        Dashboard
+                    <a href="/dashboard" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all group {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="ph ph-squares-four text-xl mr-3"></i> Dashboard
                     </a>
                     
-                    <a href="/log_incident" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 group {% if request.endpoint == 'log_incident' %}active{% endif %}">
-                        <i class="ph ph-warning-octagon text-xl mr-3 group-hover:scale-110 transition-transform"></i>
-                        Safety Log
-                    </a>
-                    
-                    <a href="/request_maintenance" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 group {% if request.endpoint == 'request_maintenance' %}active{% endif %}">
-                        <i class="ph ph-wrench text-xl mr-3 group-hover:scale-110 transition-transform"></i>
-                        Maintenance
+                    <a href="/fire_extinguishers" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all group {% if 'fire' in request.endpoint %}active{% endif %}">
+                        <i class="ph ph-fire-extinguisher text-xl mr-3"></i> Fire Extinguishers
                     </a>
 
-                    {% if current_user.role in ['Admin', 'MD', 'GM'] %}
-                    <div class="pt-6 mt-6 border-t border-indigo-800/50">
-                        <p class="px-4 text-xs font-bold text-indigo-300 uppercase tracking-wider mb-4">Administration</p>
-                        <a href="/generate_report" class="flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-emerald-500/20 hover:text-emerald-300 transition-all duration-200">
-                            <i class="ph ph-file-csv text-xl mr-3"></i>
-                            Export Reports
-                        </a>
-                    </div>
-                    {% endif %}
+                    <a href="/log_incident" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all group {% if request.endpoint == 'log_incident' %}active{% endif %}">
+                        <i class="ph ph-warning-octagon text-xl mr-3"></i> Safety Log
+                    </a>
+                    
+                    <a href="/request_maintenance" class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all group {% if request.endpoint == 'request_maintenance' %}active{% endif %}">
+                        <i class="ph ph-wrench text-xl mr-3"></i> Maintenance
+                    </a>
                 {% endif %}
             </nav>
 
@@ -81,37 +57,22 @@
                     </div>
                     <div class="ml-3 overflow-hidden">
                         <p class="text-sm font-bold text-white truncate">{{ current_user.username }}</p>
-                        <p class="text-xs text-indigo-300 truncate">{{ current_user.role }}</p>
+                        <a href="/logout" class="text-xs text-indigo-300 hover:text-white">Logout</a>
                     </div>
-                    <a href="/logout" class="ml-auto text-indigo-300 hover:text-white transition-colors">
-                        <i class="ph ph-sign-out text-2xl"></i>
-                    </a>
                 </div>
                 {% endif %}
             </div>
         </aside>
 
         <div class="flex-1 flex flex-col h-screen overflow-y-auto bg-gray-50/50">
-            <header class="md:hidden bg-indigo-900 text-white h-16 flex items-center justify-between px-4 shadow-md">
-                <div class="flex items-center">
-                    <img src="../static/logo.jpg" class="h-8 w-8 rounded-full mr-2 border border-white">
-                    <span class="font-bold">Maria FSMS</span>
-                </div>
-                {% if current_user.is_authenticated %}
-                <a href="/logout"><i class="ph ph-sign-out text-xl"></i></a>
-                {% endif %}
-            </header>
-
-            <main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full fade-in">
+            <main class="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
                 {% with messages = get_flashed_messages() %}
                     {% if messages %}
-                        <div class="mb-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 rounded-lg shadow-lg flex items-center animate-bounce-short">
-                            <i class="ph ph-bell-ringing text-xl mr-3"></i>
-                            <span class="font-medium">{{ messages[0] }}</span>
+                        <div class="mb-6 bg-indigo-600 text-white p-4 rounded-lg shadow-lg">
+                            {{ messages[0] }}
                         </div>
                     {% endif %}
                 {% endwith %}
-                
                 {% block content %}{% endblock %}
             </main>
         </div>

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Fire Extinguishers</h1>
+        <p class="text-gray-500">Manage inspection logs and inventory.</p>
+    </div>
+    <div class="flex gap-3">
+        <a href="/fire_report" target="_blank" class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-lg transition-transform hover:-translate-y-0.5">
+            <i class="ph ph-printer mr-2"></i> Print Report
+        </a>
+        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-gradient-to-r from-rose-500 to-red-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center shadow-lg shadow-rose-500/30 transition-transform hover:-translate-y-0.5">
+            <i class="ph ph-plus mr-2"></i> Add New
+        </button>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-xs uppercase font-bold text-gray-500 border-b border-gray-100">
+                <tr>
+                    <th class="px-6 py-4">ID</th>
+                    <th class="px-6 py-4">Location</th>
+                    <th class="px-6 py-4">Type</th>
+                    <th class="px-6 py-4 text-center">Inspection Status</th>
+                    <th class="px-6 py-4">Next Insp</th>
+                    <th class="px-6 py-4">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for fe in extinguishers %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 font-bold text-gray-900">{{ fe.fe_id }}</td>
+                    <td class="px-6 py-4">{{ fe.location }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold 
+                        {% if fe.type == 'Co2' %}bg-gray-100 text-gray-600{% else %}bg-red-50 text-red-600{% endif %}">
+                            {{ fe.type }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center gap-1 text-xs">
+                           <span title="Nozzle" class="{{ 'text-green-500' if fe.nozzle == '√' else 'text-red-300' }}">N</span>
+                           <span title="Seal" class="{{ 'text-green-500' if fe.seal == '√' else 'text-red-300' }}">S</span>
+                           <span title="Gauge" class="{{ 'text-green-500' if fe.gauge == '√' else 'text-red-300' }}">G</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">{{ fe.next_insp }}</td>
+                    <td class="px-6 py-4">
+                        <a href="/fire_extinguishers/delete/{{ fe._id }}" class="text-red-500 hover:text-red-700" onclick="return confirm('Delete this item?')"><i class="ph ph-trash text-lg"></i></a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="addModal" class="hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <h3 class="font-bold text-lg">Add Fire Extinguisher</h3>
+            <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600"><i class="ph ph-x text-xl"></i></button>
+        </div>
+        <form action="/fire_extinguishers/add" method="POST" class="p-6 grid grid-cols-2 gap-4">
+            <input name="fe_id" placeholder="ID (e.g. FE001)" class="col-span-1 border rounded-lg px-3 py-2" required>
+            <input name="location" placeholder="Location (e.g. GF Hall)" class="col-span-1 border rounded-lg px-3 py-2" required>
+            <div class="col-span-1">
+                <select name="type" class="w-full border rounded-lg px-3 py-2">
+                    <option value="P">Powder (P)</option>
+                    <option value="Co2">CO2</option>
+                    <option value="DCP">DCP</option>
+                </select>
+            </div>
+            <input name="capacity" placeholder="Capacity (e.g. 6KG)" class="col-span-1 border rounded-lg px-3 py-2">
+            
+            <div class="col-span-2 bg-gray-50 p-3 rounded-lg">
+                <p class="text-xs font-bold text-gray-500 mb-2 uppercase">Inspection Points (Check if OK)</p>
+                <div class="flex flex-wrap gap-4">
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="nozzle" checked> Nozzle</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="seal" checked> Seal</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="body" checked> Body</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="pin" checked> Pin</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="gauge" checked> Gauge</label>
+                    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="handle" checked> Handle</label>
+                </div>
+            </div>
+
+            <input name="last_insp" type="date" placeholder="Last Insp" class="col-span-1 border rounded-lg px-3 py-2 text-sm">
+            <input name="next_insp" type="date" placeholder="Next Insp" class="col-span-1 border rounded-lg px-3 py-2 text-sm">
+            <textarea name="remarks" placeholder="Remarks..." class="col-span-2 border rounded-lg px-3 py-2 h-20"></textarea>
+
+            <div class="col-span-2 mt-4">
+                <button type="submit" class="w-full bg-rose-600 text-white font-bold py-3 rounded-lg hover:bg-rose-700">Save Entry</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
