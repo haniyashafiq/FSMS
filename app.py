@@ -118,16 +118,127 @@ def log_incident():
 @login_required
 def request_maintenance():
     if request.method == 'POST':
-        item = request.form.get('item')
-        issue = request.form.get('issue')
-        mongo.db.maintenance.insert_one({
-            "type": "Maintenance", "item": item, "issue": issue,
-            "status": "Pending", "requested_by": current_user.username, "date": datetime.now()
-        })
-        send_automated_email("Maintenance Team", "New Request", f"{item}: {issue}")
-        flash("Maintenance Request Sent")
+        request_date = request.form.get('request_date')
+        apartment_no = request.form.get('apartment_no')
+        contact_no = request.form.get('contact_no')
+        availability = request.form.get('availability')
+        allow_entry = request.form.get('allow_entry', 'no')
+        allow_entry_notes = request.form.get('allow_entry_notes')
+
+        request_entries = []
+        for idx in range(1, 5):
+            desc = request.form.get(f'request_desc_{idx}', '').strip()
+            remarks = request.form.get(f'request_remarks_{idx}', '').strip()
+            if desc:
+                request_entries.append({
+                    "line": idx,
+                    "description": desc,
+                    "remarks": remarks
+                })
+
+        if not request_entries:
+            flash("Please describe at least one maintenance item before submitting the request.")
+            return redirect(url_for('request_maintenance'))
+
+        maintenance_doc = {
+            "type": "Maintenance",
+            "status": "Pending",
+            "requested_by": current_user.username,
+            "date": datetime.now(),
+            "request_date": request_date,
+            "apartment_no": apartment_no,
+            "contact_no": contact_no,
+            "availability": availability,
+            "allow_entry": allow_entry,
+            "allow_entry_notes": allow_entry_notes,
+            "requests": request_entries,
+            "materials_needed": request.form.get('materials_needed'),
+            "technician_name": request.form.get('technician_name'),
+            "job_completion_date": request.form.get('job_completion_date'),
+            "service_rating": request.form.get('service_rating'),
+            "service_feedback": request.form.get('service_feedback'),
+            "resident_signature": request.form.get('resident_signature')
+        }
+
+        mongo.db.maintenance.insert_one(maintenance_doc)
+
+        summary_lines = [f"{entry['description']} ({entry['remarks'] or 'No remarks'})" for entry in request_entries]
+        email_body = (
+            f"Apartment: {apartment_no or 'N/A'} | Contact: {contact_no or 'N/A'}\n"
+            f"Availability: {availability or 'N/A'} | Allow Entry: {allow_entry.upper()}\n"
+            + "\n".join(summary_lines)
+        )
+        send_automated_email("Maintenance Team", "New Maintenance Request", email_body)
+        flash("Maintenance Request Submitted")
         return redirect(url_for('dashboard'))
-    return render_template('forms.html', form_type="Maintenance Request")
+
+    default_request_date = datetime.now().strftime("%Y-%m-%d")
+    return render_template('forms.html', form_type="Maintenance Request", default_request_date=default_request_date)
+
+
+@app.route('/maintenance')
+@login_required
+def maintenance_queue():
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+
+    pending = mongo.db.maintenance.find({"status": "Pending"}).sort("date", -1)
+    resolved = mongo.db.maintenance.find({"status": "Resolved"}).sort("resolved_at", -1)
+    return render_template('maintenance_queue.html', pending=pending, resolved=resolved)
+
+
+@app.route('/maintenance/resolve/<id>', methods=['POST'])
+@login_required
+def resolve_maintenance(id):
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+
+    mongo.db.maintenance.update_one(
+        {"_id": ObjectId(id)},
+        {
+            "$set": {
+                "status": "Resolved",
+                "resolved_by": current_user.username,
+                "resolved_at": datetime.now(),
+            }
+        },
+    )
+    flash("Maintenance Request Resolved")
+    return redirect(url_for('maintenance_queue'))
+
+
+@app.route('/maintenance/report/send')
+@login_required
+def send_weekly_maintenance_report():
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+
+    pending = list(mongo.db.maintenance.find({"status": "Pending"}).sort("date", 1))
+    if not pending:
+        flash("No pending maintenance requests for this week's report")
+        return redirect(url_for('maintenance_queue'))
+
+    lines = ["Pending Maintenance Requests (auto-generated weekly report):"]
+    for req in pending:
+        stamped = req.get("date")
+        timestamp = stamped.strftime("%b %d %H:%M") if stamped else "N/A"
+        req_list = req.get("requests") or []
+        primary = req_list[0] if req_list else {}
+        primary_desc = primary.get("description") or req.get("item", "Unknown item")
+        primary_remarks = primary.get("remarks") or req.get("issue", "No description")
+        apt = req.get("apartment_no", "N/A")
+        lines.append(
+            f"- Apt {apt}: {primary_desc} ({primary_remarks}) | Reported by {req.get('requested_by', 'N/A')} on {timestamp}"
+        )
+
+    subject = "Weekly Pending Maintenance Report"
+    content = "\n".join(lines)
+    send_automated_email("Maintenance Team", subject, content)
+    flash("Weekly maintenance report emailed to the maintenance team")
+    return redirect(url_for('maintenance_queue'))
 
 @app.route('/generate_report')
 @login_required

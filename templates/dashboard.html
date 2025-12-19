@@ -1,126 +1,196 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="relative bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl p-8 mb-10 shadow-xl overflow-hidden text-white">
-    <div class="absolute right-0 top-0 h-64 w-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-    <div class="relative z-10 flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold mb-2">Hello, {{ current_user.username }}! 👋</h1>
-            <p class="text-indigo-100 max-w-lg">System status is stable. You have <span class="font-bold text-white">{{ safety_count }} safety alerts</span> requiring attention today.</p>
-        </div>
-        <div class="hidden md:block">
-            <span class="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/10 text-sm font-semibold">
-                <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                System Live
-            </span>
-        </div>
+{% extends "base.html" %} {% block content %}
+<div
+  class="relative bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl p-8 mb-10 shadow-xl overflow-hidden text-white"
+>
+  <div
+    class="absolute right-0 top-0 h-64 w-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"
+  ></div>
+  <div class="relative z-10 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold mb-2">Hello, {{ current_user.username }}! 👋</h1>
+      <p class="text-indigo-100 max-w-lg">
+        System status is stable. You have
+        <span class="font-bold text-white">{{ safety_count }} safety alerts</span> requiring
+        attention today.
+      </p>
     </div>
+    <div class="hidden md:block">
+      <span
+        class="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/10 text-sm font-semibold"
+      >
+        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+        System Live
+      </span>
+    </div>
+  </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Safety Incidents</p>
-                <h3 class="text-4xl font-bold text-gray-900 mt-2">{{ safety_count }}</h3>
-            </div>
-            <div class="h-12 w-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
-                <i class="ph ph-warning-octagon"></i>
-            </div>
-        </div>
-        <div class="mt-4 flex items-center text-sm text-rose-600 font-medium bg-rose-50 w-fit px-2 py-1 rounded-md">
-            <i class="ph ph-trend-up mr-1"></i> Critical
-        </div>
+  <div
+    class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+  >
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Safety Incidents</p>
+        <h3 class="text-4xl font-bold text-gray-900 mt-2">{{ safety_count }}</h3>
+      </div>
+      <div
+        class="h-12 w-12 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300"
+      >
+        <i class="ph ph-warning-octagon"></i>
+      </div>
     </div>
+    <div
+      class="mt-4 flex items-center text-sm text-rose-600 font-medium bg-rose-50 w-fit px-2 py-1 rounded-md"
+    >
+      <i class="ph ph-trend-up mr-1"></i> Critical
+    </div>
+  </div>
 
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Maintenance</p>
-                <h3 class="text-4xl font-bold text-gray-900 mt-2">{{ maint_count }}</h3>
-            </div>
-            <div class="h-12 w-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
-                <i class="ph ph-wrench"></i>
-            </div>
-        </div>
-        <div class="mt-4 flex items-center text-sm text-amber-600 font-medium bg-amber-50 w-fit px-2 py-1 rounded-md">
-            <i class="ph ph-hourglass mr-1"></i> Pending
-        </div>
+  <div
+    class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+  >
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Maintenance</p>
+        <h3 class="text-4xl font-bold text-gray-900 mt-2">{{ maint_count }}</h3>
+      </div>
+      <div
+        class="h-12 w-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300"
+      >
+        <i class="ph ph-wrench"></i>
+      </div>
     </div>
+    <div
+      class="mt-4 flex items-center text-sm text-amber-600 font-medium bg-amber-50 w-fit px-2 py-1 rounded-md"
+    >
+      <i class="ph ph-hourglass mr-1"></i> Pending
+    </div>
+  </div>
 
-    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Compliance</p>
-                <h3 class="text-4xl font-bold text-gray-900 mt-2">{{ score }}%</h3>
-            </div>
-            <div class="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
-                <i class="ph ph-check-circle"></i>
-            </div>
-        </div>
-        <div class="mt-4 flex items-center text-sm text-emerald-600 font-medium bg-emerald-50 w-fit px-2 py-1 rounded-md">
-            <i class="ph ph-thumbs-up mr-1"></i> Good
-        </div>
+  <div
+    class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+  >
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Compliance</p>
+        <h3 class="text-4xl font-bold text-gray-900 mt-2">{{ score }}%</h3>
+      </div>
+      <div
+        class="h-12 w-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300"
+      >
+        <i class="ph ph-check-circle"></i>
+      </div>
     </div>
+    <div
+      class="mt-4 flex items-center text-sm text-emerald-600 font-medium bg-emerald-50 w-fit px-2 py-1 rounded-md"
+    >
+      <i class="ph ph-thumbs-up mr-1"></i> Good
+    </div>
+  </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <h3 class="font-bold text-gray-800 flex items-center"><i class="ph ph-list-dashes text-lg mr-2 text-indigo-500"></i> Recent Incidents</h3>
-            <a href="/log_incident" class="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors">LOG NEW</a>
-        </div>
-        <div class="divide-y divide-gray-100">
-            {% for i in incidents %}
-            <div class="px-6 py-4 hover:bg-gray-50 transition-colors flex items-start group cursor-pointer">
-                <div class="mt-1 mr-4">
-                    {% if i.severity == 'High' %}
-                        <span class="h-10 w-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl"><i class="ph ph-siren"></i></span>
-                    {% elif i.severity == 'Medium' %}
-                        <span class="h-10 w-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl"><i class="ph ph-warning"></i></span>
-                    {% else %}
-                        <span class="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"><i class="ph ph-info"></i></span>
-                    {% endif %}
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between mb-1">
-                        <span class="font-semibold text-gray-900 text-sm group-hover:text-indigo-600 transition-colors">{{ i.description }}</span>
-                        <span class="text-xs text-gray-400">{{ i.date.strftime('%H:%M') }}</span>
-                    </div>
-                    <p class="text-xs text-gray-500">Reported by <span class="font-medium text-gray-700">{{ i.reported_by }}</span></p>
-                </div>
-            </div>
-            {% else %}
-            <div class="p-8 text-center text-gray-400 text-sm">No recent incidents. Stay safe!</div>
-            {% endfor %}
-        </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <h3 class="font-bold text-gray-800 flex items-center">
+        <i class="ph ph-list-dashes text-lg mr-2 text-indigo-500"></i> Recent Incidents
+      </h3>
+      <a
+        href="/log_incident"
+        class="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
+        >LOG NEW</a
+      >
     </div>
+    <div class="divide-y divide-gray-100">
+      {% for i in incidents %}
+      <div
+        class="px-6 py-4 hover:bg-gray-50 transition-colors flex items-start group cursor-pointer"
+      >
+        <div class="mt-1 mr-4">
+          {% if i.severity == 'High' %}
+          <span
+            class="h-10 w-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl"
+            ><i class="ph ph-siren"></i
+          ></span>
+          {% elif i.severity == 'Medium' %}
+          <span
+            class="h-10 w-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl"
+            ><i class="ph ph-warning"></i
+          ></span>
+          {% else %}
+          <span
+            class="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"
+            ><i class="ph ph-info"></i
+          ></span>
+          {% endif %}
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between mb-1">
+            <span
+              class="font-semibold text-gray-900 text-sm group-hover:text-indigo-600 transition-colors"
+              >{{ i.description }}</span
+            >
+            <span class="text-xs text-gray-400">{{ i.date.strftime('%H:%M') }}</span>
+          </div>
+          <p class="text-xs text-gray-500">
+            Reported by <span class="font-medium text-gray-700">{{ i.reported_by }}</span>
+          </p>
+        </div>
+      </div>
+      {% else %}
+      <div class="p-8 text-center text-gray-400 text-sm">No recent incidents. Stay safe!</div>
+      {% endfor %}
+    </div>
+  </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <h3 class="font-bold text-gray-800 flex items-center"><i class="ph ph-wrench text-lg mr-2 text-amber-500"></i> Maintenance</h3>
-            <a href="/request_maintenance" class="text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition-colors">REQUEST</a>
-        </div>
-        <div class="divide-y divide-gray-100">
-            {% for m in maintenance %}
-            <div class="px-6 py-4 hover:bg-gray-50 transition-colors flex items-start group cursor-pointer">
-                <div class="mt-1 mr-4">
-                    <span class="h-10 w-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl"><i class="ph ph-gear"></i></span>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between mb-1">
-                        <span class="font-semibold text-gray-900 text-sm group-hover:text-amber-600 transition-colors">{{ m.item }}</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 uppercase">Pending</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mb-1 line-clamp-1">{{ m.issue }}</p>
-                    <p class="text-xs text-gray-400">{{ m.date.strftime('%b %d') }} • {{ m.requested_by }}</p>
-                </div>
-            </div>
-             {% else %}
-            <div class="p-8 text-center text-gray-400 text-sm">Everything is running smoothly.</div>
-            {% endfor %}
-        </div>
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+      <h3 class="font-bold text-gray-800 flex items-center">
+        <i class="ph ph-wrench text-lg mr-2 text-amber-500"></i> Maintenance
+      </h3>
+      <a
+        href="/request_maintenance"
+        class="text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition-colors"
+        >REQUEST</a
+      >
     </div>
+    <div class="divide-y divide-gray-100">
+      {% for m in maintenance %}
+      <div
+        class="px-6 py-4 hover:bg-gray-50 transition-colors flex items-start group cursor-pointer"
+      >
+        <div class="mt-1 mr-4">
+          <span
+            class="h-10 w-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl"
+            ><i class="ph ph-gear"></i
+          ></span>
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between mb-1">
+            {% set reqs = m.requests or [] %} {% set primary = reqs[0] if reqs else {} %}
+            <span
+              class="font-semibold text-gray-900 text-sm group-hover:text-amber-600 transition-colors"
+              >{{ primary.description or m.item or 'Maintenance Request' }}</span
+            >
+            <span
+              class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 uppercase"
+              >Pending</span
+            >
+          </div>
+          <p class="text-sm text-gray-600 mb-1 line-clamp-1">
+            {{ primary.remarks or m.issue or 'No remarks provided' }}
+          </p>
+          <p class="text-xs text-gray-400">
+            {% if m.date %}{{ m.date.strftime('%b %d') }} • {% endif %} Apt {{ m.apartment_no or
+            'N/A' }} • {{ m.requested_by or 'Unknown' }}
+          </p>
+        </div>
+      </div>
+      {% else %}
+      <div class="p-8 text-center text-gray-400 text-sm">Everything is running smoothly.</div>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 {% endblock %}

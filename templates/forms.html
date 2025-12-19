@@ -1,60 +1,292 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="max-w-2xl mx-auto mt-6">
-    <div class="mb-6">
-        <a href="/dashboard" class="text-sm font-medium text-gray-500 hover:text-indigo-600 flex items-center transition-colors">
-            <i class="ph ph-arrow-left mr-2"></i> Back to Dashboard
-        </a>
+  <div class="mb-6">
+    <a
+      href="/dashboard"
+      class="text-sm font-medium text-gray-500 hover:text-indigo-600 flex items-center transition-colors"
+    >
+      <i class="ph ph-arrow-left mr-2"></i> Back to Dashboard
+    </a>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 relative overflow-hidden">
+    {% if form_type == "Safety Incident" %}
+    <div
+      class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 to-rose-600"
+    ></div>
+    {% else %}
+    <div
+      class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 to-amber-600"
+    ></div>
+    {% endif %}
+
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold text-gray-900">{{ form_type }}</h2>
+      <p class="text-gray-500 mt-2">
+        Fill in the details below. Fields marked with * are mandatory.
+      </p>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 relative overflow-hidden">
-        {% if form_type == "Safety Incident" %}
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 to-rose-600"></div>
-        {% else %}
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 to-amber-600"></div>
-        {% endif %}
-
-        <div class="mb-8">
-            <h2 class="text-3xl font-bold text-gray-900">{{ form_type }}</h2>
-            <p class="text-gray-500 mt-2">Fill in the details below. Fields marked with * are mandatory.</p>
+    <form method="POST" class="space-y-6">
+      {% if form_type == "Safety Incident" %}
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Description of Incident</label>
+        <textarea
+          name="description"
+          rows="5"
+          class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all resize-none bg-gray-50 focus:bg-white"
+          placeholder="Describe what happened..."
+          required
+        ></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Severity Level</label>
+        <div class="relative">
+          <select
+            name="severity"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all appearance-none bg-gray-50 focus:bg-white cursor-pointer"
+          >
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+          </select>
+          <i
+            class="ph ph-caret-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+          ></i>
         </div>
-        
-        <form method="POST" class="space-y-6">
-            {% if form_type == "Safety Incident" %}
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Description of Incident</label>
-                    <textarea name="description" rows="5" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all resize-none bg-gray-50 focus:bg-white" placeholder="Describe what happened..." required></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Severity Level</label>
-                    <div class="relative">
-                        <select name="severity" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all appearance-none bg-gray-50 focus:bg-white cursor-pointer">
-                            <option>Low</option>
-                            <option>Medium</option>
-                            <option>High</option>
-                        </select>
-                        <i class="ph ph-caret-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    </div>
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-rose-500/30 hover:shadow-xl transition-all transform hover:-translate-y-1">
-                    Submit Incident Report
-                </button>
+      </div>
+      <button
+        type="submit"
+        class="w-full bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-rose-500/30 hover:shadow-xl transition-all transform hover:-translate-y-1"
+      >
+        Submit Incident Report
+      </button>
 
-            {% else %}
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Equipment / Area</label>
-                    <input type="text" name="item" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white" placeholder="e.g. AC Unit Hallway 2" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Issue Description</label>
-                    <textarea name="issue" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all resize-none bg-gray-50 focus:bg-white" placeholder="Describe the malfunction..." required></textarea>
-                </div>
-                <button type="submit" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-xl transition-all transform hover:-translate-y-1">
-                    Submit Maintenance Request
-                </button>
-            {% endif %}
-        </form>
-    </div>
+      {% elif form_type == "Maintenance Request" %}
+      <div class="space-y-10">
+        <section>
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Resident Details</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Date</label>
+              <input
+                type="date"
+                name="request_date"
+                value="{{ default_request_date|default('') }}"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+                >Apartment No.</label
+              >
+              <input
+                type="text"
+                name="apartment_no"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                placeholder="e.g. B-1203"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+                >Contact No.</label
+              >
+              <input
+                type="tel"
+                name="contact_no"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                placeholder="e.g. +971 50 123 4567"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+                >Date &amp; Time Available</label
+              >
+              <input
+                type="text"
+                name="availability"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                placeholder="Weekdays 9AM - 12PM"
+                required
+              />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold text-gray-900">Description of Request</h3>
+            <span class="text-xs font-medium text-gray-500">Up to four service items</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table
+              class="w-full text-left text-sm border border-gray-200 rounded-xl overflow-hidden"
+            >
+              <thead class="bg-amber-50 text-amber-800 uppercase text-[11px] tracking-wide">
+                <tr>
+                  <th class="px-4 py-3 w-14">#</th>
+                  <th class="px-4 py-3">Description</th>
+                  <th class="px-4 py-3 w-56">Remarks</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for idx in range(1,5) %}
+                <tr>
+                  <td class="px-4 py-3 font-semibold text-gray-500">{{ idx }}</td>
+                  <td class="px-4 py-3">
+                    <input type="text" name="request_desc_{{ idx }}" class="w-full px-3 py-2
+                    rounded-lg border border-gray-200 focus:ring-2 focus:ring-amber-500
+                    focus:border-amber-500 outline-none text-sm" placeholder="Describe the request"
+                    {% if idx == 1 %}required{% endif %}>
+                  </td>
+                  <td class="px-4 py-3">
+                    <input
+                      type="text"
+                      name="request_remarks_{{ idx }}"
+                      class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none text-sm"
+                      placeholder="Optional notes"
+                    />
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">
+            Maintenance visits are scheduled during working hours only.
+          </p>
+        </section>
+
+        <section class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">Access Authorization</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            If you will not be available during the visit, let us know whether technicians are
+            allowed to enter your apartment.
+          </p>
+          <div class="flex flex-col gap-3">
+            <label class="inline-flex items-center gap-3 text-sm text-gray-700">
+              <input type="radio" name="allow_entry" value="yes" class="text-amber-500" required />
+              <span
+                >Yes, I authorize entry and release the company from responsibility for unattended
+                belongings.</span
+              >
+            </label>
+            <label class="inline-flex items-center gap-3 text-sm text-gray-700">
+              <input type="radio" name="allow_entry" value="no" class="text-amber-500" required />
+              <span>No, schedule only when I am present.</span>
+            </label>
+          </div>
+          <div class="mt-4">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+              >Additional instructions (optional)</label
+            >
+            <textarea
+              name="allow_entry_notes"
+              rows="3"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-white"
+              placeholder="Gate codes, pet info, key handover, etc."
+            ></textarea>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="md:col-span-3">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">For Official Use Only</h3>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+              >Material Needed</label
+            >
+            <input
+              type="text"
+              name="materials_needed"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              placeholder="e.g. 2x filters"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+              >Technician Name</label
+            >
+            <input
+              type="text"
+              name="technician_name"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              placeholder="Assigned staff"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+              >Job Completion Date</label
+            >
+            <input
+              type="date"
+              name="job_completion_date"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+            />
+          </div>
+        </section>
+
+        <section class="space-y-4">
+          <h3 class="text-lg font-bold text-gray-900">Job Completion Feedback</h3>
+          <div class="flex flex-col gap-3">
+            <label class="inline-flex items-center gap-3 text-sm text-gray-700">
+              <input
+                type="radio"
+                name="service_rating"
+                value="satisfied"
+                class="text-emerald-500"
+              />
+              <span>Satisfied</span>
+            </label>
+            <label class="inline-flex items-center gap-3 text-sm text-gray-700">
+              <input
+                type="radio"
+                name="service_rating"
+                value="not_satisfied"
+                class="text-rose-500"
+              />
+              <span>Not satisfied (please provide reasons below)</span>
+            </label>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+              >Reasons / Remarks</label
+            >
+            <textarea
+              name="service_feedback"
+              rows="3"
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+              placeholder="Share feedback about the service"
+            ></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2"
+                >Resident Signature</label
+              >
+              <input
+                type="text"
+                name="resident_signature"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all bg-gray-50 focus:bg-white"
+                placeholder="Type full name"
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-xl transition-all transform hover:-translate-y-1"
+      >
+        Submit Maintenance Request
+      </button>
+      {% endif %}
+    </form>
+  </div>
 </div>
 {% endblock %}
