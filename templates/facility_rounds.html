@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block content %}
+{% set show_weekly_tools = False %}
+<div class="space-y-10">
+  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <p class="text-xs font-semibold tracking-[0.3em] text-slate-500 uppercase">Facility Assurance</p>
+      <h1 class="text-3xl md:text-4xl font-black text-slate-900">Facility Round Checks</h1>
+      <p class="text-sm text-slate-500 mt-2">
+        Weekly walkthroughs per area with a single source of truth for every checklist tick.
+      </p>
+    </div>
+    <form method="GET" action="{{ url_for('facility_rounds_view') }}" class="bg-white/80 backdrop-blur rounded-2xl border border-slate-200 px-4 py-3 flex flex-col gap-3 md:flex-row md:items-end">
+      <label class="text-xs font-semibold text-slate-500 uppercase tracking-widest flex flex-col gap-2">
+        Month
+        <select name="month" class="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400">
+          {% for option in month_options %}
+          <option value="{{ option.key }}" {% if option.key == month_key %}selected{% endif %}>{{ option.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="flex items-end gap-2">
+        <input type="hidden" name="area" value="{{ selected_area or '' }}" />
+        <input type="hidden" name="week" value="{{ selected_week }}" />
+        <button type="submit" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold tracking-wide rounded-xl uppercase">Apply</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+    {% for week in week_summary %}
+    {% set card_classes = "relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm" %}
+    {% if week.auto_completed %}
+    {% set card_classes = "relative overflow-hidden rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-white to-emerald-100 p-5 shadow-lg shadow-emerald-100" %}
+    {% elif week.state == 'future' %}
+    {% set card_classes = card_classes + " border-dashed opacity-80" %}
+    {% elif week.state == 'past' and not week.auto_completed and not week.manual_completed and week.pending_requests > 0 %}
+    {% set card_classes = "relative overflow-hidden rounded-3xl border border-rose-300 bg-gradient-to-br from-rose-50 via-white to-rose-100 p-5 shadow-md shadow-rose-100" %}
+    {% endif %}
+    <div class="{{ card_classes }}">
+      <div class="absolute -top-8 -right-10 w-32 h-32 bg-slate-900/5 rounded-full"></div>
+      {% if week.auto_completed %}
+      <div class="absolute top-4 right-4 z-10">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 shadow-sm">
+          <i class="ph ph-check-bold text-xl"></i>
+        </span>
+      </div>
+      {% endif %}
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+        <span>Week {{ week.week }}</span>
+        <span>{{ week.window }}</span>
+      </div>
+      <p class="text-4xl font-black text-slate-900 mt-4">{{ week.pending_requests }}</p>
+      <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Pending maintenance</p>
+      <div class="mt-5 text-xs font-semibold">
+        {% if week.auto_completed %}
+        <p class="text-emerald-700 flex items-center gap-2">
+          <i class="ph ph-check-circle text-base"></i>
+          All clear · week closed with zero pending
+        </p>
+        {% elif week.manual_completed %}
+        <p class="text-indigo-700">{{ week.manual_completed }} area(s) closed by inspectors</p>
+        {% elif week.state == 'future' %}
+        <p class="text-slate-400">Scheduled · starts later this month</p>
+        {% else %}
+        <p class="text-amber-700">Action required this week</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if show_weekly_tools %}
+  <div class="grid gap-8 lg:grid-cols-2">
+    <section class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-slate-100">
+        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Weekly inspection</p>
+        <h2 class="text-2xl font-bold text-slate-900">Capture round details</h2>
+        <p class="text-sm text-slate-500">Load a week, tick each checklist item, and leave focused notes.</p>
+      </div>
+      <div class="p-6 space-y-6">
+        <form method="GET" action="{{ url_for('facility_rounds_view') }}" class="grid gap-4 md:grid-cols-3">
+          <input type="hidden" name="month" value="{{ month_key }}" />
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-semibold tracking-wide text-slate-500 uppercase">Area</span>
+            <select name="area" class="w-full px-3 py-2 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+              {% for area in areas %}
+              <option value="{{ area }}" {% if area == selected_area %}selected{% endif %}>{{ area }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-semibold tracking-wide text-slate-500 uppercase">Week</span>
+            <select name="week" class="w-full px-3 py-2 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+              {% for w in range(1,6) %}
+              <option value="{{ w }}" {% if w == selected_week %}selected{% endif %}>Week {{ w }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <div class="flex items-end">
+            <button type="submit" class="w-full px-4 py-2 rounded-2xl bg-slate-900 text-white text-xs font-bold tracking-widest uppercase">
+              Load week
+            </button>
+          </div>
+        </form>
+
+        {% if selected_area %}
+        <form method="POST" action="{{ url_for('save_facility_round_week') }}" class="space-y-6">
+          <input type="hidden" name="month_key" value="{{ month_key }}" />
+          <input type="hidden" name="area" value="{{ selected_area }}" />
+          <input type="hidden" name="week_number" value="{{ selected_week }}" />
+
+          <div class="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 text-xs text-slate-500 flex flex-wrap gap-3">
+            <span class="font-semibold text-slate-700">{{ month_label }} · Week {{ selected_week }}</span>
+            {% if selected_week_snapshot and selected_week_snapshot.auto_completed %}
+            <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[11px] uppercase tracking-wide">
+              Auto closed · no pending maintenance
+            </span>
+            {% elif selected_round and selected_round.auto_completed %}
+            <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[11px] uppercase tracking-wide">
+              Auto closed on {% if selected_round.auto_completed_at %}{{ selected_round.auto_completed_at.strftime('%b %d %H:%M') }}{% else %}system{% endif %}
+            </span>
+            {% else %}
+            <span class="px-3 py-1 rounded-full bg-slate-200 text-slate-700 text-[11px] uppercase tracking-wide">
+              Reviewing {{ selected_area }}
+            </span>
+            {% endif %}
+          </div>
+
+          {% if selected_items %}
+          <div class="space-y-4">
+            {% for item in selected_items %}
+            {% set status = selected_item_lookup.get(item.id) %}
+            <div class="border border-slate-200 rounded-2xl p-4 bg-white/60">
+              <label class="flex items-start gap-3">
+                <input type="checkbox" name="status_{{ item.id }}" class="mt-1 h-4 w-4 text-slate-900 rounded" {% if status and status.checked %}checked{% endif %} />
+                <div class="flex-1 space-y-3">
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900">{{ item.item }}</p>
+                    <p class="text-xs text-slate-500">Tick when verified in the round.</p>
+                  </div>
+                  <textarea name="note_{{ item.id }}" rows="2" class="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="Notes or reminders">{% if status %}{{ status.note }}{% endif %}</textarea>
+                </div>
+              </label>
+              <input type="hidden" name="checklist_ids" value="{{ item.id }}" />
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="border border-dashed border-amber-300 rounded-2xl p-4 bg-amber-50 text-sm text-amber-700">
+            No checklist items for {{ selected_area }} yet. Add them on the right to begin tracking this area.
+          </div>
+          {% endif %}
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Week notes</label>
+            <textarea name="notes" rows="3" class="w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="Observations, follow-ups, or escalations">{{ selected_round_notes }}</textarea>
+          </div>
+
+          <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+            <input type="checkbox" name="mark_complete" class="h-4 w-4 text-slate-900 rounded" {% if selected_round_status == 'Completed' and not (selected_round and selected_round.auto_completed) %}checked{% endif %} />
+            Mark week as manually completed
+          </label>
+
+          <button type="submit" class="w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm font-bold tracking-wide uppercase">
+            Save weekly inspection
+          </button>
+        </form>
+        {% else %}
+        <div class="border border-dashed border-slate-300 rounded-2xl p-6 text-center text-sm text-slate-500">
+          Build at least one checklist area to start capturing inspections.
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-5 border-b border-slate-100">
+        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Master checklist</p>
+        <h2 class="text-2xl font-bold text-slate-900">Define repeatable checks</h2>
+        <p class="text-sm text-slate-500">Areas and items drive the weekly forms and reporting.</p>
+      </div>
+      <div class="p-6 space-y-6">
+        <form method="POST" action="{{ url_for('add_facility_checklist_item') }}" class="grid gap-4 md:grid-cols-3">
+          <label class="flex flex-col gap-2 md:col-span-1">
+            <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Area</span>
+            <input type="text" name="area" class="px-3 py-2 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="e.g., Lobby" required />
+          </label>
+          <label class="flex flex-col gap-2 md:col-span-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Checklist item</span>
+            <input type="text" name="item" class="px-3 py-2 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="Lighting, signage, housekeeping..." required />
+          </label>
+          <div class="md:col-span-3 flex justify-end">
+            <button type="submit" class="px-5 py-2 rounded-2xl bg-slate-900 text-white text-xs font-bold tracking-widest uppercase">
+              Add item
+            </button>
+          </div>
+        </form>
+
+        {% if has_checklist %}
+        <div class="space-y-5 max-h-[32rem] overflow-y-auto pr-2">
+          {% for area_name in areas %}
+          {% set area_items = checklist_by_area.get(area_name, []) %}
+          {% if area_items %}
+          <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/60">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">{{ area_name }}</p>
+            <ul class="mt-3 space-y-2">
+              {% for item in area_items %}
+              <li class="flex items-center justify-between gap-3 text-sm text-slate-700 bg-white rounded-2xl px-3 py-2 border border-slate-200">
+                <span>{{ item.item }}</span>
+                <form method="POST" action="{{ url_for('delete_facility_checklist_item', id=item.id) }}">
+                  <input type="hidden" name="redirect_area" value="{{ area_name }}" />
+                  <button type="submit" class="text-xs font-bold uppercase tracking-wide text-rose-600 hover:text-rose-800">Remove</button>
+                </form>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="border border-dashed border-slate-300 rounded-2xl p-6 text-center text-sm text-slate-500">
+          No checklist items yet. Start by adding the core areas you inspect every week.
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

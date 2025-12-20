@@ -1,5 +1,6 @@
 import os
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from flask_pymongo import PyMongo
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -47,6 +48,147 @@ def load_user(user_id):
     except:
         return None
     return None
+
+# --- FACILITY ROUND HELPERS ---
+def month_key_from_date(dt=None):
+    dt = dt or datetime.now()
+    return dt.strftime("%Y-%m")
+
+
+def parse_month_key(month_key):
+    try:
+        year, month = month_key.split("-")
+        return int(year), int(month)
+    except Exception:
+        today = datetime.now()
+        return today.year, today.month
+
+
+def get_week_of_month(dt):
+    return ((dt.day - 1) // 7) + 1
+
+
+def get_week_date_range(year, month, week_number):
+    days_in_month = calendar.monthrange(year, month)[1]
+    start_day = (week_number - 1) * 7 + 1
+    if start_day > days_in_month:
+        return None, None
+    start_date = datetime(year, month, start_day)
+    month_end = datetime(year, month, days_in_month) + timedelta(days=1)
+    end_date = min(start_date + timedelta(days=7), month_end)
+    return start_date, end_date
+
+
+def reset_auto_completed_week(month_key, week_number):
+    mongo.db.facility_rounds.update_many(
+        {"month_key": month_key, "week_number": week_number, "auto_completed": True},
+        {"$set": {
+            "auto_completed": False,
+            "auto_completed_at": None,
+            "auto_reason": None,
+            "status": "Pending"
+        }}
+    )
+
+
+def auto_complete_week_if_clear(month_key, week_number, pending_count=None):
+    year, month = parse_month_key(month_key)
+    start_date, end_date = get_week_date_range(year, month, week_number)
+    if not start_date:
+        return False
+    now = datetime.now()
+    if pending_count is None:
+        pending_count = mongo.db.maintenance.count_documents({
+            "status": "Pending",
+            "date": {"$gte": start_date, "$lt": end_date}
+        })
+    if now < end_date:
+        reset_auto_completed_week(month_key, week_number)
+        return False
+    if pending_count == 0:
+        mongo.db.facility_rounds.update_many(
+            {"month_key": month_key, "week_number": week_number},
+            {"$set": {
+                "status": "Completed",
+                "auto_completed": True,
+                "auto_completed_at": datetime.now(),
+                "auto_reason": "All maintenance requests resolved for this week",
+                "checked_by": "system"
+            }}
+        )
+        return True
+    reset_auto_completed_week(month_key, week_number)
+    return False
+
+
+def get_weekly_maintenance_snapshot(month_key):
+    year, month = parse_month_key(month_key)
+    summary = []
+    now = datetime.now()
+    for week in range(1, 6):
+        start_date, end_date = get_week_date_range(year, month, week)
+        if not start_date:
+            summary.append({
+                "week": week,
+                "pending_requests": 0,
+                "auto_completed": False,
+                "manual_completed": 0,
+                "window": "N/A",
+                "state": "future"
+            })
+            continue
+        pending = mongo.db.maintenance.count_documents({
+            "status": "Pending",
+            "date": {"$gte": start_date, "$lt": end_date}
+        })
+        state = "future"
+        if start_date <= now < end_date:
+            state = "active"
+        elif now >= end_date:
+            state = "past"
+        auto_flag = auto_complete_week_if_clear(month_key, week, pending)
+        manual_completed = mongo.db.facility_rounds.count_documents({
+            "month_key": month_key,
+            "week_number": week,
+            "status": "Completed",
+            "auto_completed": {"$ne": True}
+        })
+        window = f"{start_date.strftime('%b %d')} – {(end_date - timedelta(days=1)).strftime('%b %d')}"
+        summary.append({
+            "week": week,
+            "pending_requests": pending,
+            "auto_completed": auto_flag,
+            "manual_completed": manual_completed,
+            "window": window,
+            "state": state
+        })
+    return summary
+
+
+def get_recent_month_options(count=6):
+    now = datetime.now()
+    year = now.year
+    month = now.month
+    options = []
+    for _ in range(count):
+        anchor = datetime(year, month, 1)
+        options.append({
+            "key": anchor.strftime("%Y-%m"),
+            "label": anchor.strftime("%B %Y")
+        })
+        month -= 1
+        if month == 0:
+            month = 12
+            year -= 1
+    return options
+
+
+def evaluate_auto_week_for_date(dt):
+    if not dt:
+        dt = datetime.now()
+    month_key = month_key_from_date(dt)
+    week_number = get_week_of_month(dt)
+    auto_complete_week_if_clear(month_key, week_number)
 
 # --- ROUTES ---
 
@@ -195,6 +337,11 @@ def resolve_maintenance(id):
         flash("Unauthorized")
         return redirect(url_for('dashboard'))
 
+    request_doc = mongo.db.maintenance.find_one({"_id": ObjectId(id)})
+    if not request_doc:
+        flash("Maintenance request not found")
+        return redirect(url_for('maintenance_queue'))
+
     mongo.db.maintenance.update_one(
         {"_id": ObjectId(id)},
         {
@@ -205,6 +352,7 @@ def resolve_maintenance(id):
             }
         },
     )
+    evaluate_auto_week_for_date(request_doc.get("date"))
     flash("Maintenance Request Resolved")
     return redirect(url_for('maintenance_queue'))
 
@@ -249,6 +397,186 @@ def generate_report():
     
     # CSV Generator logic remains same...
     return redirect(url_for('dashboard'))
+
+# --- FACILITY ROUND CHECK MODULE ---
+
+@app.route('/facility_rounds')
+@login_required
+def facility_rounds_view():
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+
+    month_key = request.args.get('month') or month_key_from_date()
+    try:
+        selected_week = int(request.args.get('week', 1))
+    except (TypeError, ValueError):
+        selected_week = 1
+    selected_week = max(1, min(selected_week, 5))
+
+    checklist_docs = list(mongo.db.facility_checklist.find().sort([("area", 1), ("item", 1)]))
+    checklist_by_area = {}
+    for doc in checklist_docs:
+        area = (doc.get("area") or "General").strip() or "General"
+        checklist_by_area.setdefault(area, []).append({
+            "id": str(doc['_id']),
+            "item": doc.get("item", "Unnamed item")
+        })
+
+    historic_areas = mongo.db.facility_rounds.distinct("area")
+    for area_name in historic_areas:
+        if area_name and area_name not in checklist_by_area:
+            checklist_by_area[area_name] = []
+
+    areas = sorted(checklist_by_area.keys())
+    selected_area = request.args.get('area')
+    if not selected_area and areas:
+        selected_area = areas[0]
+    selected_items = checklist_by_area.get(selected_area, []) if selected_area else []
+
+    selected_round_doc = None
+    selected_item_lookup = {}
+    if selected_area:
+        selected_round_doc = mongo.db.facility_rounds.find_one({
+            "month_key": month_key,
+            "area": selected_area,
+            "week_number": selected_week
+        })
+    if selected_round_doc:
+        for result in selected_round_doc.get("results", []):
+            result_id = str(result.get("item_id"))
+            selected_item_lookup[result_id] = {
+                "checked": result.get("checked"),
+                "note": result.get("note", "")
+            }
+
+    week_summary = get_weekly_maintenance_snapshot(month_key)
+    year, month = parse_month_key(month_key)
+    month_label = datetime(year, month, 1).strftime("%B %Y")
+    selected_week_snapshot = next((w for w in week_summary if w["week"] == selected_week), {})
+
+    context = {
+        "month_key": month_key,
+        "month_label": month_label,
+        "month_options": get_recent_month_options(),
+        "week_summary": week_summary,
+        "selected_week": selected_week,
+        "areas": areas,
+        "selected_area": selected_area,
+        "selected_items": selected_items,
+        "selected_round": selected_round_doc,
+        "selected_item_lookup": selected_item_lookup,
+        "selected_round_status": selected_round_doc.get("status") if selected_round_doc else "Pending",
+        "selected_round_notes": (selected_round_doc.get("notes") if selected_round_doc else "") or "",
+        "has_checklist": bool(checklist_docs),
+        "checklist_by_area": checklist_by_area,
+        "selected_week_snapshot": selected_week_snapshot
+    }
+    return render_template('facility_rounds.html', **context)
+
+
+@app.route('/facility_rounds/checklist/add', methods=['POST'])
+@login_required
+def add_facility_checklist_item():
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+
+    area = (request.form.get('area') or '').strip()
+    item_label = (request.form.get('item') or '').strip()
+    if not area or not item_label:
+        flash("Area and checklist item are required")
+        return redirect(url_for('facility_rounds_view'))
+
+    mongo.db.facility_checklist.insert_one({
+        "area": area,
+        "item": item_label,
+        "created_by": current_user.username,
+        "created_at": datetime.now()
+    })
+    flash("Checklist item added")
+    return redirect(url_for('facility_rounds_view', area=area))
+
+
+@app.route('/facility_rounds/checklist/delete/<id>', methods=['POST'])
+@login_required
+def delete_facility_checklist_item(id):
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+    redirect_area = request.form.get('redirect_area')
+    try:
+        mongo.db.facility_checklist.delete_one({"_id": ObjectId(id)})
+        flash("Checklist item removed")
+    except Exception:
+        flash("Unable to remove checklist item")
+    if redirect_area:
+        return redirect(url_for('facility_rounds_view', area=redirect_area))
+    return redirect(url_for('facility_rounds_view'))
+
+
+@app.route('/facility_rounds/week/save', methods=['POST'])
+@login_required
+def save_facility_round_week():
+    if current_user.role != 'Admin':
+        flash("Unauthorized")
+        return redirect(url_for('dashboard'))
+
+    month_key = request.form.get('month_key') or month_key_from_date()
+    area = (request.form.get('area') or '').strip()
+    if not area:
+        flash("Please select an area before saving")
+        return redirect(url_for('facility_rounds_view', month=month_key))
+
+    try:
+        week_number = int(request.form.get('week_number', 1))
+    except (TypeError, ValueError):
+        week_number = 1
+    week_number = max(1, min(week_number, 5))
+
+    notes = (request.form.get('notes') or '').strip()
+    mark_complete = request.form.get('mark_complete') == 'on'
+    checklist_ids = request.form.getlist('checklist_ids')
+
+    results = []
+    for checklist_id in checklist_ids:
+        try:
+            item_obj = mongo.db.facility_checklist.find_one({"_id": ObjectId(checklist_id)})
+        except Exception:
+            item_obj = None
+        if not item_obj:
+            continue
+        results.append({
+            "item_id": item_obj['_id'],
+            "item": item_obj.get('item'),
+            "area": item_obj.get('area'),
+            "checked": request.form.get(f'status_{checklist_id}') == 'on',
+            "note": (request.form.get(f'note_{checklist_id}') or '').strip()
+        })
+
+    update_doc = {
+        "month_key": month_key,
+        "area": area,
+        "week_number": week_number,
+        "results": results,
+        "notes": notes,
+        "status": "Completed" if mark_complete else "Pending",
+        "checked_by": current_user.username,
+        "updated_at": datetime.now(),
+        "auto_completed": False,
+        "auto_completed_at": None,
+        "auto_reason": None
+    }
+
+    mongo.db.facility_rounds.update_one(
+        {"month_key": month_key, "area": area, "week_number": week_number},
+        {"$set": update_doc},
+        upsert=True
+    )
+
+    auto_complete_week_if_clear(month_key, week_number)
+    flash(f"Week {week_number} inspection saved for {area}")
+    return redirect(url_for('facility_rounds_view', month=month_key, area=area, week=week_number))
 
 # --- NEW: FIRE EXTINGUISHER MODULE ---
 

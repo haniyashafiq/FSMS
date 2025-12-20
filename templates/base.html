@@ -84,6 +84,12 @@
           >
             <i class="ph ph-list-checks text-xl mr-3"></i> Maintenance Queue
           </a>
+          <a
+            href="/facility_rounds"
+            class="nav-item flex items-center px-4 py-3 text-sm font-medium text-indigo-100 rounded-lg hover:bg-white/10 hover:text-white transition-all group {% if request.endpoint == 'facility_rounds_view' %}active{% endif %}"
+          >
+            <i class="ph ph-clipboard-text text-xl mr-3"></i> Facility Rounds
+          </a>
           {% endif %} {% endif %}
         </nav>
 
